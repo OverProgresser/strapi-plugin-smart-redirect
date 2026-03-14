@@ -43,24 +43,43 @@ await strapi.db.query('plugin::redirect-manager.redirect').create({ data: { ... 
 - Async/await only — no raw Promise chains
 
 ## Codebase State
-This plugin is being built from scratch. No pre-existing implementation files exist yet.
-Read CLAUDE.md for the target architecture and Faza plan before implementing anything.
+Faza 1, 2, 3 tamamlandı. Faza 4 (runtime middleware) sırada.
+Tamamlanan dosyalar: content-types/redirect/redirect.ts, services/redirect.ts,
+services/settings.ts, controllers/redirect.ts, controllers/settings.ts,
+routes/redirect.ts, routes/settings.ts, bootstrap.ts, admin/src/pages/SettingsPage.tsx
 
-## Upcoming Fazas
-- **Faza 1**: Scaffold + package.json + LICENSE + README
-- **Faza 2**: Runtime redirect middleware (`middlewares/index.ts`)
-- **Faza 3**: Plugin Settings UI (content type tablosu + URL prefix mapping)
-- **Faza 4**: Chain detection in services/redirect.ts
-- **Faza 5**: Orphan redirect content-type + admin UI
+## Faza Durumu (PRD Bölüm 8)
+1. ✅ **Faza 1** — Scaffold + package.json + proje iskelet
+2. ✅ **Faza 2** — `redirect` content-type + CRUD service/controller/route
+3. ✅ **Faza 3** — Plugin Settings sayfası + slug auto-redirect (lifecycle hooks)
+4. 🔄 **Faza 4** — Runtime middleware (cache dahil)
+5. **Faza 5** — Admin UI: redirect listesi + ekleme/düzenleme formu
+6. **Faza 6** — Chain detection
+7. **Faza 7** — Orphan redirect
 
 ## Security Requirements (Apply to All Fazas)
-- Admin-only endpoints: settings (GET+POST), content-types (GET), redirect create (POST)
-- Public endpoints: redirect query (GET /redirect, GET /redirect/all, GET /content/:ct/:slug)
+- Tüm route'lar `type: 'admin'` — asla `content-api` + `auth: false` değil
+- `from` ve `to` alanları `/` ile başlamalı — open redirect yasak, `http(s)://` kabul edilmez
+- `Location` header'a sanitize edilmemiş değer yazılmaz
+- Hata response'larında stack trace sızdırılmaz
 - Verify correct Strapi v5 admin auth policy via MCP before implementing
 
 ## Admin UI
 **Always query MCP before using any Strapi Design System v2 component** — DS v2 has breaking prop changes from v1.
-Admin hooks to use: `useFetchClient`, `useNotification`
+Admin hooks to use: `useFetchClient`, `useNotification` — import from `@strapi/strapi/admin`
+
+### DS v2 — Bilinen Prop Farkları (eğitim verisinde yanlış olabilir, MCP'ye sor)
+- Checkbox: `onChange` → `onCheckedChange`
+- Toggle: `onLabel` + `offLabel` zorunlu; `onChange` native input event alır
+- Tüm DS import'ları `@strapi/design-system` root'undan
+
+### Admin Route URL Pattern
+`type: 'admin'` route'lar `/${pluginId}/...` path'inde serve edilir.
+Admin panel fetch'leri: `useFetchClient` ile `/${pluginId}/settings` — `/api/` prefix'i yok.
+
+### Settings Toggle'ları
+`PluginSettings` interface: `autoRedirectOnSlugChange`, `chainDetectionEnabled`,
+`orphanRedirectEnabled` toggle'ları + `enabledContentTypes` map'i
 
 ## Faza Branch & Commit Convention
 - Branch naming: `faza/2-middleware`, `faza/3-settings`, etc.

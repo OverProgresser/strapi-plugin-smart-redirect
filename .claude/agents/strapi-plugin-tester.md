@@ -60,17 +60,46 @@ Reset mocks in `beforeEach` with `jest.clearAllMocks()`. Never share mock state 
 - Co-locate `__tests__/` with the module being tested
 
 ## Codebase State
-Plugin is being built from scratch. Before writing any tests, read the source file that was just implemented — do not infer API shapes from agent memory or prior conversations.
+Faza 1-3 complete. Before writing any tests, read the source file that was just implemented — do not infer API shapes from agent memory or prior conversations.
+
+## Service Methods (current)
+Known service methods: `findAll`, `findActive`, `findByFrom`, `create`, `update`,
+`delete`, `toggleActive`, `getSettings`, `saveSettings`
+
+## Settings Mock
+```typescript
+const mockSettings = {
+  enabledContentTypes: {
+    'api::post.post': { enabled: true, slugField: 'slug', urlPrefix: '/blog' },
+  },
+  autoRedirectOnSlugChange: true,
+  chainDetectionEnabled: true,
+  orphanRedirectEnabled: true,
+};
+```
+
+## Chain Detection Test Cases (Faza 6)
+- Max 10 hop: 11th hop must throw error
+- Cycle (A→B→A): must throw error
+- `chainDetectionEnabled: false` → skip check, save redirect directly
+
+## Redirect Schema Fields (current)
+The `redirect` content-type uses these fields — do NOT use old names:
+- `from` (string) — NOT `oldSlug`
+- `to` (string) — NOT `newSlug`
+- `type` (enumeration: '301' | '302') — NOT `redirectType`
+- `isActive` (boolean, default true)
+- `comment` (text, optional)
 
 ## Assertion Standards
 - Always assert on the **exact arguments** passed to DB calls:
   ```typescript
   expect(mockQuery.create).toHaveBeenCalledWith({
     data: {
-      oldSlug: '/old-path',
-      newSlug: '/new-path',
-      redirectType: '301',
-      contentType: 'api::page.page',
+      from: '/old-path',
+      to: '/new-path',
+      type: '301',
+      isActive: true,
     },
   });
   ```

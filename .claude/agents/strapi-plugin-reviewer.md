@@ -58,6 +58,16 @@ Key known technical debt (pre-existing, do not flag as new issues):
 - `useNotification` called exactly once at the top of the component function, not inside loops or conditionals
 - Design System components used: `Box`, `Button`, `Checkbox`, `Flex`, `Main`, `Table`, `Thead`, `Tbody`, `Tr`, `Th`, `Td`, `SingleSelect`, `SingleSelectOption`, `Typography`, `Loader`
 - `useFetchClient` used for API calls — not raw `fetch`
+- Checkbox uses `onCheckedChange` — NOT `onChange`
+- Toggle has `onLabel` and `offLabel` props
+
+### Security (PRD Bölüm 7)
+- `from` and `to` fields start with `/` — no external domains (open redirect protection)
+- `to` field does not start with `http://` or `https://`
+- `Location` header never receives raw `ctx.request.path` or unsanitized user input
+- Error responses never expose `error.stack` or `error.message` to client
+- `isActive: false` redirects are excluded from middleware cache
+- Cache invalidation: cache is updated after create/update/delete operations
 
 ### Code Style (project standards)
 - 2-space indentation
