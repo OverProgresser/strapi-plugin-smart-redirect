@@ -1,4 +1,5 @@
 import type { Core } from '@strapi/strapi';
+import type { PluginSettings } from '../services/redirect';
 
 type KoaContext = Parameters<Core.Controller[string]>[0];
 
@@ -159,8 +160,19 @@ const redirectController = ({ strapi }: { strapi: Core.Strapi }) => {
 
     async saveSettings(ctx: KoaContext) {
       const body = ctx.request.body as Record<string, unknown>;
-      const { enabledContentTypes } = body;
-      ctx.body = await service().saveSettings({ enabledContentTypes } as Parameters<ReturnType<typeof service>['saveSettings']>[0]);
+      const {
+        enabledContentTypes,
+        autoRedirectOnSlugChange,
+        showChainWarning,
+        showOrphanNotification,
+      } = body;
+      const saveData: PluginSettings = {
+        enabledContentTypes: (enabledContentTypes ?? {}) as PluginSettings['enabledContentTypes'],
+        autoRedirectOnSlugChange: autoRedirectOnSlugChange !== false,
+        showChainWarning: showChainWarning !== false,
+        showOrphanNotification: showOrphanNotification !== false,
+      };
+      ctx.body = await service().saveSettings(saveData);
     },
 
     async getContentTypes(ctx: KoaContext) {
