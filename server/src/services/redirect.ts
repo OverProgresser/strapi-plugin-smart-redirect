@@ -9,10 +9,14 @@ const PLUGIN_STORE_KEY = 'settings';
 export interface ContentTypeSettings {
   enabled: boolean;
   slugField: string | null;
+  urlPrefix?: string;
 }
 
 export interface PluginSettings {
   enabledContentTypes: Record<string, ContentTypeSettings>;
+  autoRedirectOnSlugChange: boolean;
+  showChainWarning: boolean;
+  showOrphanNotification: boolean;
 }
 
 const redirectService = ({ strapi }: { strapi: Core.Strapi }) => ({
@@ -27,7 +31,13 @@ const redirectService = ({ strapi }: { strapi: Core.Strapi }) => ({
       name: 'redirect-manager',
     });
     const settings = await store.get({ key: PLUGIN_STORE_KEY });
-    return (settings as PluginSettings) ?? { enabledContentTypes: {} };
+    const defaults: PluginSettings = {
+      enabledContentTypes: {},
+      autoRedirectOnSlugChange: true,
+      showChainWarning: true,
+      showOrphanNotification: true,
+    };
+    return (settings as PluginSettings) ?? defaults;
   },
 
   async saveSettings(settings: PluginSettings): Promise<PluginSettings> {

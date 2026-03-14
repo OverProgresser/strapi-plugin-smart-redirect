@@ -18,6 +18,31 @@ export default {
       },
     });
 
+    app.createSettingSection(
+      {
+        id: PLUGIN_ID,
+        intlLabel: {
+          id: getTranslation('plugin.name'),
+          defaultMessage: 'Redirect Manager',
+        },
+      },
+      [
+        {
+          intlLabel: {
+            id: getTranslation('settings.link.label'),
+            defaultMessage: 'Configuration',
+          },
+          id: `${PLUGIN_ID}-settings`,
+          to: `/settings/${PLUGIN_ID}`,
+          Component: async () => {
+            const { Settings } = await import('./pages/Settings');
+            return Settings;
+          },
+          permissions: [],
+        },
+      ],
+    );
+
     app.registerPlugin({
       id: PLUGIN_ID,
       initializer: Initializer,

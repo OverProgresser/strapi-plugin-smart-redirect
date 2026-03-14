@@ -5,6 +5,7 @@ import {
   Checkbox,
   Flex,
   Main,
+  Toggle,
   Typography,
   Loader,
   Table,
@@ -28,18 +29,29 @@ interface ContentTypeInfo {
 interface ContentTypeSettings {
   enabled: boolean;
   slugField: string | null;
+  urlPrefix?: string;
 }
 
 interface PluginSettings {
   enabledContentTypes: Record<string, ContentTypeSettings>;
+  autoRedirectOnSlugChange: boolean;
+  showChainWarning: boolean;
+  showOrphanNotification: boolean;
 }
+
+const DEFAULT_SETTINGS: PluginSettings = {
+  enabledContentTypes: {},
+  autoRedirectOnSlugChange: true,
+  showChainWarning: true,
+  showOrphanNotification: true,
+};
 
 const Settings = () => {
   const { get, post } = useFetchClient();
   const { toggleNotification } = useNotification();
 
   const [contentTypes, setContentTypes] = useState<ContentTypeInfo[]>([]);
-  const [settings, setSettings] = useState<PluginSettings>({ enabledContentTypes: {} });
+  const [settings, setSettings] = useState<PluginSettings>(DEFAULT_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -47,11 +59,16 @@ const Settings = () => {
     const fetchData = async () => {
       try {
         const [ctRes, settingsRes] = await Promise.all([
-          get(`/api/${PLUGIN_ID}/content-types`),
-          get(`/api/${PLUGIN_ID}/settings`),
+          get(`/${PLUGIN_ID}/content-types`),
+          get(`/${PLUGIN_ID}/settings`),
         ]);
         setContentTypes(ctRes.data as ContentTypeInfo[]);
-        setSettings(settingsRes.data as PluginSettings);
+        const loaded = settingsRes.data as Partial<PluginSettings>;
+        setSettings({
+          ...DEFAULT_SETTINGS,
+          ...loaded,
+          enabledContentTypes: loaded.enabledContentTypes ?? {},
+        });
       } catch {
         toggleNotification({
           type: 'danger',
@@ -65,8 +82,13 @@ const Settings = () => {
     fetchData();
   }, []);
 
+  const handleFeatureToggle = (key: keyof Omit<PluginSettings, 'enabledContentTypes'>) => {
+    setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   const handleToggle = (uid: string) => {
     setSettings((prev) => ({
+      ...prev,
       enabledContentTypes: {
         ...prev.enabledContentTypes,
         [uid]: {
@@ -80,6 +102,7 @@ const Settings = () => {
 
   const handleSlugFieldChange = (uid: string, value: string) => {
     setSettings((prev) => ({
+      ...prev,
       enabledContentTypes: {
         ...prev.enabledContentTypes,
         [uid]: {
@@ -94,7 +117,7 @@ const Settings = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await post(`/api/${PLUGIN_ID}/settings`, settings);
+      await post(`/${PLUGIN_ID}/settings`, settings);
       toggleNotification({
         type: 'success',
         message: 'Settings saved successfully',
@@ -131,6 +154,45 @@ const Settings = () => {
           </Button>
         </Flex>
 
+        {/* Feature toggles */}
+        <Box paddingBottom={6}>
+          <Typography variant="delta" tag="h2" paddingBottom={4}>
+            Features
+          </Typography>
+          <Flex direction="column" gap={4} alignItems="flex-start">
+            <Toggle
+              checked={settings.autoRedirectOnSlugChange}
+              onChange={() => handleFeatureToggle('autoRedirectOnSlugChange')}
+              onLabel="On"
+              offLabel="Off"
+              aria-label="Auto-create redirect on slug change"
+            />
+            <Typography>Auto-create redirect when slug changes</Typography>
+
+            <Toggle
+              checked={settings.showChainWarning}
+              onChange={() => handleFeatureToggle('showChainWarning')}
+              onLabel="On"
+              offLabel="Off"
+              aria-label="Show redirect chain warning"
+            />
+            <Typography>Show redirect chain warning</Typography>
+
+            <Toggle
+              checked={settings.showOrphanNotification}
+              onChange={() => handleFeatureToggle('showOrphanNotification')}
+              onLabel="On"
+              offLabel="Off"
+              aria-label="Show orphan redirect notification"
+            />
+            <Typography>Show orphan redirect notification</Typography>
+          </Flex>
+        </Box>
+
+        {/* Content type table */}
+        <Typography variant="delta" tag="h2" paddingBottom={4}>
+          Content Types
+        </Typography>
         <Table colCount={3} rowCount={contentTypes.length}>
           <Thead>
             <Tr>
@@ -160,7 +222,7 @@ const Settings = () => {
                   <Td>
                     <Checkbox
                       checked={ctSettings.enabled}
-                      onChange={() => handleToggle(ct.uid)}
+                      onCheckedChange={() => handleToggle(ct.uid)}
                       aria-label={`Enable redirect tracking for ${ct.displayName}`}
                     />
                   </Td>
