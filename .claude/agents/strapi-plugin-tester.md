@@ -1,6 +1,6 @@
 ---
 name: strapi-plugin-tester
-description: "Use this agent when a new feature, service, middleware, or lifecycle hook has been implemented in the Strapi redirect manager plugin and needs test coverage written. Trigger after completing any meaningful implementation work on bootstrap.ts, services/redirect.ts, or the runtime middleware.\\n\\n<example>\\nContext: The user has just implemented chain detection logic in services/redirect.ts.\\nuser: \"I've finished implementing the chain detection feature in redirect service\"\\nassistant: \"Great work! Let me use the strapi-plugin-tester agent to write comprehensive tests for the chain detection logic.\"\\n<commentary>\\nSince a significant service feature was implemented, use the Agent tool to launch the strapi-plugin-tester agent to write tests covering all chain detection cases.\\n</commentary>\\n</example>\\n\\n<example>\\nContext: The user has implemented the runtime redirect middleware in middlewares/index.ts (Faza 2).\\nuser: \"The middleware is done — it handles 301/302 redirects at request time\"\\nassistant: \"Now let me use the strapi-plugin-tester agent to write the middleware test suite.\"\\n<commentary>\\nA new middleware was implemented, so use the Agent tool to launch the strapi-plugin-tester to create server/src/__tests__/middleware.test.ts with the priority test cases.\\n</commentary>\\n</example>\\n\\n<example>\\nContext: Developer finished updating bootstrap.ts to handle a new edge case.\\nuser: \"I updated bootstrap.ts to handle undefined event.state gracefully\"\\nassistant: \"I'll use the strapi-plugin-tester agent to add and verify tests for that edge case.\"\\n<commentary>\\nA lifecycle hook was modified, so use the Agent tool to launch the strapi-plugin-tester to update bootstrap.test.ts with the new edge case coverage.\\n</commentary>\\n</example>"
+description: "Use this agent when a new feature, service, middleware, or lifecycle hook has been implemented in the Strapi redirect manager plugin and needs test coverage written. Trigger after completing any meaningful implementation work on bootstrap.ts, services/redirect.ts, or the runtime middleware.\\n\\n<example>\\nContext: The user has just implemented chain detection logic in services/redirect.ts.\\nuser: \"I've finished implementing the chain detection feature in redirect service\"\\nassistant: \"Great work! Let me use the strapi-plugin-tester agent to write comprehensive tests for the chain detection logic.\"\\n<commentary>\\nSince a significant service feature was implemented, use the Agent tool to launch the strapi-plugin-tester agent to write tests covering all chain detection cases.\\n</commentary>\\n</example>\\n\\n<example>\\nContext: The user has implemented the runtime redirect middleware in middlewares/index.ts (Faza 4).\\nuser: \"The middleware is done — it handles 301/302 redirects at request time\"\\nassistant: \"Now let me use the strapi-plugin-tester agent to write the middleware test suite.\"\\n<commentary>\\nA new middleware was implemented, so use the Agent tool to launch the strapi-plugin-tester to create server/src/__tests__/middleware.test.ts with the priority test cases.\\n</commentary>\\n</example>\\n\\n<example>\\nContext: Developer finished updating bootstrap.ts to handle a new edge case.\\nuser: \"I updated bootstrap.ts to handle undefined event.state gracefully\"\\nassistant: \"I'll use the strapi-plugin-tester agent to add and verify tests for that edge case.\"\\n<commentary>\\nA lifecycle hook was modified, so use the Agent tool to launch the strapi-plugin-tester to update bootstrap.test.ts with the new edge case coverage.\\n</commentary>\\n</example>"
 model: opus
 color: red
 memory: project
@@ -60,7 +60,7 @@ Reset mocks in `beforeEach` with `jest.clearAllMocks()`. Never share mock state 
 - Co-locate `__tests__/` with the module being tested
 
 ## Codebase State
-Faza 1-3 complete. Before writing any tests, read the source file that was just implemented — do not infer API shapes from agent memory or prior conversations.
+Faza 1-2 complete, Faza 3 in progress. Before writing any tests, read the source file that was just implemented — do not infer API shapes from agent memory or prior conversations.
 
 ## Service Methods (current)
 Known service methods: `findAll`, `findActive`, `findByFrom`, `create`, `update`,
@@ -82,6 +82,18 @@ const mockSettings = {
 - Max 10 hop: 11th hop must throw error
 - Cycle (A→B→A): must throw error
 - `chainDetectionEnabled: false` → skip check, save redirect directly
+
+## Orphan Redirect Test Cases (Faza 7)
+- `afterDelete` creates orphan-redirect with `status: 'pending'`
+- Resolve: sets `status: 'resolved'` and creates active redirect record
+- Dismiss: sets `status: 'dismissed'`, no redirect created
+- `orphanRedirectEnabled: false` → `afterDelete` hook skipped
+
+## Security Test Cases (all fazas)
+- Controller rejects unknown/extra fields in request body
+- Error responses never contain `error.stack` or internal paths
+- `from` and `to` must start with `/` — reject otherwise
+- `to` must not start with `http://` or `https://`
 
 ## Redirect Schema Fields (current)
 The `redirect` content-type uses these fields — do NOT use old names:

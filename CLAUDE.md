@@ -12,7 +12,7 @@ olabilir. MCP'yi atlamak yasak.
 
 ## Tech Stack
 - **Plugin scaffold:** `@strapi/sdk-plugin`
-- **Runtime:** Node.js 20+, TypeScript strict
+- **Runtime:** Node.js >=18.0.0, TypeScript strict
 - **Admin UI:** Strapi Design System v2 (`@strapi/design-system`)
 - **Build:** `strapi-plugin build` / `strapi-plugin watch`
 - **Type check:** `tsc --noEmit` (ayrı front + back tsconfig)
@@ -68,8 +68,8 @@ resolvedTo:   string, optional   — editörün girdiği hedef URL
 ## Geliştirme Sırası (Fazalar)
 1. ✅ **Faza 1** — Scaffold + package.json + proje iskelet
 2. ✅ **Faza 2** — `redirect` content-type + CRUD service/controller/route
-3. ✅ **Faza 3** — Plugin Settings sayfası + slug auto-redirect (lifecycle hooks)
-4. 🔄 **Faza 4** — Runtime middleware (cache dahil)
+3. 🔄 **Faza 3** — Plugin Settings sayfası + slug auto-redirect (lifecycle hooks)
+4. **Faza 4** — Runtime middleware (cache dahil)
 5. **Faza 5** — Admin UI: redirect listesi + ekleme/düzenleme formu
 6. **Faza 6** — Chain detection
 7. **Faza 7** — Orphan redirect
@@ -98,6 +98,8 @@ npm run test:ts:back   # tsc server tsconfig
 - Her commit öncesi `test:ts:front` + `test:ts:back` geçmeli
 
 ## Teknik Kısıtlar (PRD Bölüm 6-7)
+- Controller'da input validation: boş string, yanlış tip, bilinmeyen alan kabul edilmez
+- Tüm admin CRUD endpoint'leri Strapi admin JWT ile korumalı
 - Tüm route'lar `type: 'admin'` — asla `content-api` + `auth: false` değil
 - `type: 'admin'` route'lar `/${pluginId}/...` path'i altında serve edilir
 - `@strapi/helper-plugin` kullanılmaz — import'lar `@strapi/strapi/admin`'den

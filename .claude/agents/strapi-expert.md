@@ -1,6 +1,6 @@
 ---
 name: strapi-expert
-description: "Use this agent when writing, reviewing, or debugging anything that touches Strapi v5 internals in this plugin project. This includes lifecycle hooks (beforeUpdate/afterUpdate), content-type schema definitions, plugin registration, admin UI extensions using Strapi Design System v2, middleware implementation, strapi.db.query() usage, strapi.store() settings, route/controller/service patterns, or any new Strapi API surface. Always invoke proactively before implementing any new Strapi API usage to avoid v4→v5 migration pitfalls.\\n\\n<example>\\nContext: Developer is implementing the runtime redirect middleware in middlewares/index.ts (Faza 2).\\nuser: \"Implement the runtime redirect middleware that intercepts requests and performs 301 redirects\"\\nassistant: \"Before implementing this, let me invoke the strapi-expert agent to verify the correct Strapi v5 middleware registration API and strapi.db.query() patterns.\"\\n<commentary>\\nSince this involves Strapi v5 middleware internals and db.query() usage, use the strapi-expert agent to verify correct API patterns via MCP before writing any code.\\n</commentary>\\nassistant: \"Now let me use the strapi-expert agent to guide the middleware implementation\"\\n</example>\\n\\n<example>\\nContext: Developer is adding a new content-type for orphan redirects (Faza 5).\\nuser: \"Add a new content-type called orphan-redirect to track redirects pointing to deleted content\"\\nassistant: \"I'll invoke the strapi-expert agent to verify the correct TypeScript content-type schema format and UID patterns for this plugin.\"\\n<commentary>\\nAdding a new content-type touches Strapi internals and must follow the project's TypeScript schema pattern (not schema.json). Use the strapi-expert agent to ensure correctness.\\n</commentary>\\nassistant: \"Let me use the strapi-expert agent to implement this correctly\"\\n</example>\\n\\n<example>\\nContext: Developer wants to add URL prefix mapping to the Settings page (Faza 3).\\nuser: \"Add URL prefix mapping fields to the plugin settings page\"\\nassistant: \"This touches both Strapi Design System v2 components and strapi.store() settings — I'll use the strapi-expert agent to verify the correct component APIs and storage patterns.\"\\n<commentary>\\nStrapi Design System v2 has breaking changes and the settings storage pattern must use getSettings() correctly. Proactively invoke the strapi-expert agent.\\n</commentary>\\nassistant: \"Using the strapi-expert agent to implement the settings extension\"\\n</example>"
+description: "Use this agent when writing, reviewing, or debugging anything that touches Strapi v5 internals in this plugin project. This includes lifecycle hooks (beforeUpdate/afterUpdate), content-type schema definitions, plugin registration, admin UI extensions using Strapi Design System v2, middleware implementation, strapi.db.query() usage, strapi.store() settings, route/controller/service patterns, or any new Strapi API surface. Always invoke proactively before implementing any new Strapi API usage to avoid v4→v5 migration pitfalls.\\n\\n<example>\\nContext: Developer is implementing the runtime redirect middleware in middlewares/index.ts (Faza 4).\\nuser: \"Implement the runtime redirect middleware that intercepts requests and performs 301 redirects\"\\nassistant: \"Before implementing this, let me invoke the strapi-expert agent to verify the correct Strapi v5 middleware registration API and strapi.db.query() patterns.\"\\n<commentary>\\nSince this involves Strapi v5 middleware internals and db.query() usage, use the strapi-expert agent to verify correct API patterns via MCP before writing any code.\\n</commentary>\\nassistant: \"Now let me use the strapi-expert agent to guide the middleware implementation\"\\n</example>\\n\\n<example>\\nContext: Developer is adding a new content-type for orphan redirects (Faza 7).\\nuser: \"Add a new content-type called orphan-redirect to track redirects pointing to deleted content\"\\nassistant: \"I'll invoke the strapi-expert agent to verify the correct TypeScript content-type schema format and UID patterns for this plugin.\"\\n<commentary>\\nAdding a new content-type touches Strapi internals and must follow the project's TypeScript schema pattern (not schema.json). Use the strapi-expert agent to ensure correctness.\\n</commentary>\\nassistant: \"Let me use the strapi-expert agent to implement this correctly\"\\n</example>\\n\\n<example>\\nContext: Developer wants to add URL prefix mapping to the Settings page (Faza 3).\\nuser: \"Add URL prefix mapping fields to the plugin settings page\"\\nassistant: \"This touches both Strapi Design System v2 components and strapi.store() settings — I'll use the strapi-expert agent to verify the correct component APIs and storage patterns.\"\\n<commentary>\\nStrapi Design System v2 has breaking changes and the settings storage pattern must use getSettings() correctly. Proactively invoke the strapi-expert agent.\\n</commentary>\\nassistant: \"Using the strapi-expert agent to implement the settings extension\"\\n</example>"
 model: sonnet
 color: purple
 memory: project
@@ -51,8 +51,8 @@ routes/redirect.ts, routes/settings.ts, bootstrap.ts, admin/src/pages/SettingsPa
 ## Faza Durumu (PRD Bölüm 8)
 1. ✅ **Faza 1** — Scaffold + package.json + proje iskelet
 2. ✅ **Faza 2** — `redirect` content-type + CRUD service/controller/route
-3. ✅ **Faza 3** — Plugin Settings sayfası + slug auto-redirect (lifecycle hooks)
-4. 🔄 **Faza 4** — Runtime middleware (cache dahil)
+3. 🔄 **Faza 3** — Plugin Settings sayfası + slug auto-redirect (lifecycle hooks)
+4. **Faza 4** — Runtime middleware (cache dahil)
 5. **Faza 5** — Admin UI: redirect listesi + ekleme/düzenleme formu
 6. **Faza 6** — Chain detection
 7. **Faza 7** — Orphan redirect
@@ -62,6 +62,7 @@ routes/redirect.ts, routes/settings.ts, bootstrap.ts, admin/src/pages/SettingsPa
 - `from` ve `to` alanları `/` ile başlamalı — open redirect yasak, `http(s)://` kabul edilmez
 - `Location` header'a sanitize edilmemiş değer yazılmaz
 - Hata response'larında stack trace sızdırılmaz
+- Controller'da input validation: boş string, yanlış tip, bilinmeyen alan kabul edilmez
 - Verify correct Strapi v5 admin auth policy via MCP before implementing
 
 ## Admin UI
@@ -92,6 +93,8 @@ The following are explicitly deferred to future versions — do not implement ev
 - Locale-aware redirects
 - A/B redirects
 - Analytics tracking
+- Regex/wildcard redirect
+- Import/export
 
 ## Workflow for Every Task
 1. **Query MCP first** — verify the specific Strapi v5 API surface you're about to touch
