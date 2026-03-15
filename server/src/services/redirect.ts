@@ -9,6 +9,22 @@ const ORPHAN_UID = 'plugin::redirect-manager.orphan-redirect' as const;
 const PLUGIN_STORE_KEY = 'settings';
 const MAX_CHAIN_DEPTH = 10;
 
+/**
+ * Normalize a redirect path for consistent matching:
+ * - Collapse consecutive slashes
+ * - Strip query string
+ * - Strip trailing slash (unless root '/')
+ */
+function normalizePath(p: string): string {
+  let normalized = p.replace(/\/+/g, '/');
+  const qIndex = normalized.indexOf('?');
+  if (qIndex !== -1) normalized = normalized.slice(0, qIndex);
+  if (normalized.length > 1 && normalized.endsWith('/')) {
+    normalized = normalized.slice(0, -1);
+  }
+  return normalized;
+}
+
 export interface ContentTypeSettings {
   enabled: boolean;
   slugField: string | null;
@@ -134,6 +150,17 @@ const redirectService = ({ strapi }: { strapi: Core.Strapi }) => {
     },
 
     async create(data: CreateRedirectInput): Promise<Redirect> {
+      // Normalize paths so stored values match the middleware's normalization
+      data = { ...data, from: normalizePath(data.from), to: normalizePath(data.to) };
+
+      // Reject protocol-relative or non-root paths
+      for (const field of ['from', 'to'] as const) {
+        const val = data[field];
+        if (!val || !val.startsWith('/') || val.startsWith('//')) {
+          throw new Error(`'${field}' must be an absolute path starting with '/' and must not be protocol-relative.`);
+        }
+      }
+
       // Conflict check first — reject early if from already exists
       const existing = await strapi.db.query(UID).findOne({
         where: { from: data.from },
@@ -155,6 +182,10 @@ const redirectService = ({ strapi }: { strapi: Core.Strapi }) => {
     },
 
     async update(id: number, data: UpdateRedirectInput): Promise<Redirect> {
+      // Normalize paths if provided
+      if (data.from !== undefined) data = { ...data, from: normalizePath(data.from) };
+      if (data.to !== undefined) data = { ...data, to: normalizePath(data.to) };
+
       // Conflict check for 'from' changes
       if (data.from !== undefined) {
         const conflict = await strapi.db.query(UID).findOne({

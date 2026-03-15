@@ -45,8 +45,8 @@ export default ({ strapi }: { strapi: Core.Strapi }) => {
       return;
     }
 
-    // Security: skip external redirects — only internal paths are allowed
-    if (match.to.startsWith('http://') || match.to.startsWith('https://')) {
+    // Security: skip external and protocol-relative redirects — only internal paths are allowed
+    if (match.to.startsWith('//') || match.to.startsWith('http://') || match.to.startsWith('https://')) {
       strapi.log.warn(`[redirect-manager] Skipping external redirect to ${match.to}`);
       await next();
       return;

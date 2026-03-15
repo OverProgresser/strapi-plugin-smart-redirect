@@ -92,8 +92,8 @@ const bootstrap = async ({ strapi }: { strapi: Core.Strapi }) => {
       if (typeof newSlug !== 'string' || !newSlug || oldSlug === newSlug) return;
 
       const urlPrefix = config.urlPrefix ?? '';
-      const from = `${urlPrefix}/${oldSlug}`.replace('//', '/');
-      const to = `${urlPrefix}/${newSlug}`.replace('//', '/');
+      const from = `${urlPrefix}/${oldSlug}`.replace(/\/+/g, '/');
+      const to = `${urlPrefix}/${newSlug}`.replace(/\/+/g, '/');
 
       // Cycle prevention: remove any reverse redirect that would create a loop
       await strapi.db.query('plugin::redirect-manager.redirect').deleteMany({
@@ -148,7 +148,7 @@ const bootstrap = async ({ strapi }: { strapi: Core.Strapi }) => {
       }
 
       const urlPrefix = config.urlPrefix ?? '';
-      const from = `${urlPrefix}/${slug}`.replace('//', '/');
+      const from = `${urlPrefix}/${slug}`.replace(/\/+/g, '/');
 
       // Keep a single pending orphan per path.
       await strapi.db.query(ORPHAN_UID).deleteMany({
