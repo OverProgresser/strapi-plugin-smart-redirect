@@ -8,9 +8,14 @@
   "keywords": [
     "strapi",
     "strapi-plugin",
+    "strapi-v5",
     "redirect",
+    "301",
+    "302",
     "seo",
-    "301"
+    "redirect-manager",
+    "auto-redirect",
+    "slug-redirect"
   ],
   "repository": {
     "type": "git",
@@ -38,8 +43,13 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "strapi-plugin build",
     "watch": "strapi-plugin watch",
