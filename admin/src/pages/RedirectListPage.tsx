@@ -31,7 +31,7 @@ interface Redirect {
   id: number;
   from: string;
   to: string;
-  type: '301' | '302';
+  type: 'permanent' | 'temporary';
   isActive: boolean;
   comment?: string;
 }
@@ -39,7 +39,7 @@ interface Redirect {
 interface FormValues {
   from: string;
   to: string;
-  type: '301' | '302';
+  type: 'permanent' | 'temporary';
   isActive: boolean;
   comment: string;
 }
@@ -47,7 +47,7 @@ interface FormValues {
 const EMPTY_FORM: FormValues = {
   from: '',
   to: '',
-  type: '301',
+  type: 'permanent',
   isActive: true,
   comment: '',
 };
@@ -267,7 +267,7 @@ const RedirectListPage = () => {
                     <Typography>{redirect.to}</Typography>
                   </Td>
                   <Td>
-                    <Badge>{redirect.type}</Badge>
+                    <Badge>{redirect.type === 'permanent' ? '301' : '302'}</Badge>
                   </Td>
                   <Td>
                     <Badge active={redirect.isActive}>
@@ -353,11 +353,11 @@ const RedirectListPage = () => {
                 <SingleSelect
                   value={formValues.type}
                   onChange={(value: string | number) =>
-                    handleFormChange('type', String(value) as '301' | '302')
+                    handleFormChange('type', String(value) as 'permanent' | 'temporary')
                   }
                 >
-                  <SingleSelectOption value="301">301 — Permanent</SingleSelectOption>
-                  <SingleSelectOption value="302">302 — Temporary</SingleSelectOption>
+                  <SingleSelectOption value="permanent">301 — Permanent</SingleSelectOption>
+                  <SingleSelectOption value="temporary">302 — Temporary</SingleSelectOption>
                 </SingleSelect>
               </Field.Root>
 

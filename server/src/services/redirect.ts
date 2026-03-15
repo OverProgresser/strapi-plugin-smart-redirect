@@ -230,7 +230,7 @@ const redirectService = ({ strapi }: { strapi: Core.Strapi }) => {
       const orphanRecord = orphan as OrphanRedirect;
 
       // Create the actual redirect (runs through conflict + chain detection)
-      await svc.create({ from: orphanRecord.from, to, type: '301' });
+      await svc.create({ from: orphanRecord.from, to, type: 'permanent' });
 
       // Mark orphan as resolved
       await strapi.db.query(ORPHAN_UID).update({

@@ -1,7 +1,12 @@
 import type { Core } from '@strapi/strapi';
 import type Koa = require('koa');
 
-type CacheEntry = { to: string; type: '301' | '302' };
+type CacheEntry = { to: string; type: 'permanent' | 'temporary' };
+
+const STATUS_MAP: Record<string, number> = {
+  permanent: 301,
+  temporary: 302,
+};
 
 let cache: Map<string, CacheEntry> | null = null;
 
@@ -13,7 +18,7 @@ async function getCache(strapi: Core.Strapi): Promise<Map<string, CacheEntry>> {
     .findMany({ where: { isActive: true } });
 
   cache = new Map(
-    (redirects as Array<{ from: string; to: string; type: '301' | '302' }>).map((r) => [
+    (redirects as Array<{ from: string; to: string; type: 'permanent' | 'temporary' }>).map((r) => [
       r.from,
       { to: r.to, type: r.type },
     ]),
@@ -48,7 +53,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => {
     }
 
     // Set status before ctx.redirect() so Koa preserves it (default would be 302)
-    ctx.status = parseInt(match.type, 10);
+    ctx.status = STATUS_MAP[match.type] ?? 301;
     ctx.redirect(match.to);
   };
 };

@@ -45,7 +45,7 @@ type MiddlewareFn = (ctx: Ctx, next: jest.Mock) => Promise<void>;
 
 /** Standard DB rows returned by findMany — all internal, all active */
 function makeRedirects(
-  entries: Array<{ from: string; to: string; type?: '301' | '302' }>,
+  entries: Array<{ from: string; to: string; type?: 'permanent' | 'temporary' }>,
 ) {
   return entries.map((e) => ({
     from: e.from,
@@ -148,7 +148,7 @@ describe('redirect middleware', () => {
   describe('redirect matching', () => {
     it('should set ctx.status and call ctx.redirect when path matches a 301', async () => {
       mockFindMany.mockResolvedValue(
-        makeRedirects([{ from: '/old-page', to: '/new-page', type: '301' }]),
+        makeRedirects([{ from: '/old-page', to: '/new-page', type: 'permanent' }]),
       );
       const ctx = createCtx('/old-page');
 
@@ -165,7 +165,7 @@ describe('redirect middleware', () => {
     it('should set ctx.status = 302 for a 302 redirect', async () => {
       mockFindMany.mockResolvedValue(
         makeRedirects([
-          { from: '/temporary', to: '/destination', type: '302' },
+          { from: '/temporary', to: '/destination', type: 'temporary' },
         ]),
       );
       const ctx = createCtx('/temporary');
@@ -194,9 +194,9 @@ describe('redirect middleware', () => {
     it('should match the correct redirect when multiple entries exist', async () => {
       mockFindMany.mockResolvedValue(
         makeRedirects([
-          { from: '/page-a', to: '/page-a-new', type: '301' },
-          { from: '/page-b', to: '/page-b-new', type: '302' },
-          { from: '/page-c', to: '/page-c-new', type: '301' },
+          { from: '/page-a', to: '/page-a-new', type: 'permanent' },
+          { from: '/page-b', to: '/page-b-new', type: 'temporary' },
+          { from: '/page-c', to: '/page-c-new', type: 'permanent' },
         ]),
       );
       const ctx = createCtx('/page-b');
@@ -216,7 +216,7 @@ describe('redirect middleware', () => {
   describe('trailing slash normalization', () => {
     beforeEach(() => {
       mockFindMany.mockResolvedValue(
-        makeRedirects([{ from: '/blog', to: '/articles', type: '301' }]),
+        makeRedirects([{ from: '/blog', to: '/articles', type: 'permanent' }]),
       );
     });
 
@@ -236,7 +236,7 @@ describe('redirect middleware', () => {
       // DECISION: Root "/" must remain "/" — stripping the slash would produce
       // an empty string, which would break path matching.
       mockFindMany.mockResolvedValue(
-        makeRedirects([{ from: '/', to: '/home', type: '301' }]),
+        makeRedirects([{ from: '/', to: '/home', type: 'permanent' }]),
       );
       // Need to re-invalidate since we changed the mock
       invalidateCache();
@@ -305,7 +305,7 @@ describe('redirect middleware', () => {
       // Edge case: a path like "/httpbin-test" should NOT be blocked
       mockFindMany.mockResolvedValue(
         makeRedirects([
-          { from: '/httpbin-test', to: '/api/httpbin', type: '301' },
+          { from: '/httpbin-test', to: '/api/httpbin', type: 'permanent' },
         ]),
       );
       const ctx = createCtx('/httpbin-test');
@@ -338,7 +338,7 @@ describe('redirect middleware', () => {
       // The middleware relies on the DB query to filter inactive redirects.
       // If findMany only returns active ones, the cache map will only contain active entries.
       mockFindMany.mockResolvedValue([
-        { from: '/active', to: '/destination', type: '301' as const, isActive: true },
+        { from: '/active', to: '/destination', type: 'permanent' as const, isActive: true },
         // isActive: false would NOT be returned by the DB query because of the where clause,
         // but if somehow it leaked through, verify the cache map behavior.
       ]);
@@ -369,7 +369,7 @@ describe('redirect middleware', () => {
     it('should handle deeply nested paths', async () => {
       mockFindMany.mockResolvedValue(
         makeRedirects([
-          { from: '/a/b/c/d/e', to: '/short', type: '301' },
+          { from: '/a/b/c/d/e', to: '/short', type: 'permanent' },
         ]),
       );
       const ctx = createCtx('/a/b/c/d/e');
@@ -383,7 +383,7 @@ describe('redirect middleware', () => {
     it('should strip trailing slash from deeply nested paths', async () => {
       mockFindMany.mockResolvedValue(
         makeRedirects([
-          { from: '/a/b/c', to: '/flat', type: '302' },
+          { from: '/a/b/c', to: '/flat', type: 'temporary' },
         ]),
       );
       const ctx = createCtx('/a/b/c/');

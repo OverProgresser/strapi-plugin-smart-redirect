@@ -70,7 +70,7 @@ const bootstrap = async ({ strapi }: { strapi: Core.Strapi }) => {
       });
 
       try {
-        await redirectService.create({ from, to, type: '301' });
+        await redirectService.create({ from, to, type: 'permanent' });
       } catch (err) {
         // If a redirect from this path already exists, skip silently (race condition)
         strapi.log.warn(

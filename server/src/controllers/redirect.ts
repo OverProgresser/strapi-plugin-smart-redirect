@@ -3,7 +3,7 @@ import type { PluginSettings } from '../services/redirect';
 
 type KoaContext = Parameters<Core.Controller[string]>[0];
 
-const VALID_TYPES = ['301', '302'] as const;
+const VALID_TYPES = ['permanent', 'temporary'] as const;
 
 function validateSlugPath(value: unknown, fieldName: string): string | null {
   if (typeof value !== 'string' || value.trim() === '') {
@@ -50,8 +50,8 @@ const redirectController = ({ strapi }: { strapi: Core.Strapi }) => {
       const toError = validateSlugPath(body['to'], 'to');
       if (toError) return ctx.badRequest(toError);
 
-      const type = body['type'] ?? '301';
-      if (!VALID_TYPES.includes(type as '301' | '302')) {
+      const type = body['type'] ?? 'permanent';
+      if (!VALID_TYPES.includes(type as 'permanent' | 'temporary')) {
         return ctx.badRequest(`'type' must be one of: ${VALID_TYPES.join(', ')}.`);
       }
 
@@ -59,7 +59,7 @@ const redirectController = ({ strapi }: { strapi: Core.Strapi }) => {
         const redirect = await service().create({
           from: body['from'] as string,
           to: body['to'] as string,
-          type: type as '301' | '302',
+          type: type as 'permanent' | 'temporary',
           isActive: body['isActive'] !== undefined ? Boolean(body['isActive']) : true,
           comment: typeof body['comment'] === 'string' ? body['comment'] : undefined,
         });
@@ -93,7 +93,7 @@ const redirectController = ({ strapi }: { strapi: Core.Strapi }) => {
       }
 
       if (body['type'] !== undefined) {
-        if (!VALID_TYPES.includes(body['type'] as '301' | '302')) {
+        if (!VALID_TYPES.includes(body['type'] as 'permanent' | 'temporary')) {
           return ctx.badRequest(`'type' must be one of: ${VALID_TYPES.join(', ')}.`);
         }
         updateData['type'] = body['type'];
