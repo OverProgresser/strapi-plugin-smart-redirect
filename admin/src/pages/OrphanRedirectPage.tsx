@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useIntl } from 'react-intl';
 import {
   Box,
   Button,
@@ -19,6 +20,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useFetchClient, useNotification } from '@strapi/strapi/admin';
 import { PLUGIN_ID } from '../pluginId';
+import { getTranslation } from '../utils/getTranslation';
 
 interface OrphanRedirect {
   id: number;
@@ -30,9 +32,13 @@ interface OrphanRedirect {
 }
 
 const OrphanRedirectPage = () => {
+  const { formatMessage } = useIntl();
   const { get, put } = useFetchClient();
   const { toggleNotification } = useNotification();
   const navigate = useNavigate();
+
+  const t = (id: string, defaultMessage: string) =>
+    formatMessage({ id: getTranslation(id), defaultMessage });
 
   const [orphans, setOrphans] = useState<OrphanRedirect[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -53,7 +59,7 @@ const OrphanRedirectPage = () => {
       const res = await get(`/${PLUGIN_ID}/orphan-redirects`);
       setOrphans((res.data as { data: OrphanRedirect[] }).data);
     } catch {
-      toggleNotification({ type: 'danger', message: 'Failed to load orphan redirects' });
+      toggleNotification({ type: 'danger', message: t('orphan.load.error', 'Failed to load orphan redirects') });
     } finally {
       setIsLoading(false);
     }
@@ -90,12 +96,12 @@ const OrphanRedirectPage = () => {
     setIsSubmitting(true);
     try {
       await put(`/${PLUGIN_ID}/orphan-redirects/${resolvingId}/resolve`, { to: resolveTo });
-      toggleNotification({ type: 'success', message: 'Redirect created successfully' });
+      toggleNotification({ type: 'success', message: t('orphan.resolve.success', 'Redirect created successfully') });
       setResolveDialogOpen(false);
       setResolvingId(null);
       await fetchOrphans();
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to resolve orphan redirect';
+      const message = err instanceof Error ? err.message : t('orphan.resolve.error', 'Failed to resolve orphan redirect');
       setResolveError(message);
     } finally {
       setIsSubmitting(false);
@@ -107,12 +113,12 @@ const OrphanRedirectPage = () => {
     setIsSubmitting(true);
     try {
       await put(`/${PLUGIN_ID}/orphan-redirects/${dismissingId}/dismiss`, {});
-      toggleNotification({ type: 'success', message: 'Orphan redirect dismissed' });
+      toggleNotification({ type: 'success', message: t('orphan.dismiss.success', 'Orphan redirect dismissed') });
       setDismissDialogOpen(false);
       setDismissingId(null);
       await fetchOrphans();
     } catch {
-      toggleNotification({ type: 'danger', message: 'Failed to dismiss orphan redirect' });
+      toggleNotification({ type: 'danger', message: t('orphan.dismiss.error', 'Failed to dismiss orphan redirect') });
     } finally {
       setIsSubmitting(false);
     }
@@ -122,7 +128,7 @@ const OrphanRedirectPage = () => {
     return (
       <Main>
         <Flex justifyContent="center" padding={8}>
-          <Loader>Loading orphan redirects...</Loader>
+          <Loader>{t('orphan.loading', 'Loading orphan redirects...')}</Loader>
         </Flex>
       </Main>
     );
@@ -133,24 +139,23 @@ const OrphanRedirectPage = () => {
       <Box padding={8}>
         <Flex justifyContent="space-between" alignItems="center" paddingBottom={6}>
           <Typography variant="alpha" tag="h1">
-            Orphan Redirects
+            {t('orphan.title', 'Orphan Redirects')}
           </Typography>
           <Button variant="tertiary" onClick={() => navigate(-1)}>
-            Back to Redirects
+            {t('orphan.back', 'Back to Redirects')}
           </Button>
         </Flex>
 
         <Box paddingBottom={4}>
           <Typography textColor="neutral600">
-            These URLs no longer have a destination because the content was deleted.
-            Resolve each one by creating a redirect, or dismiss to ignore it.
+            {t('orphan.description', 'These URLs no longer have a destination because the content was deleted. Resolve each one by creating a redirect, or dismiss to ignore it.')}
           </Typography>
         </Box>
 
         {orphans.length === 0 ? (
           <Box padding={6} background="neutral100" borderRadius="4px">
             <Typography textColor="neutral600">
-              No pending orphan redirects. Deleted content will appear here if orphan tracking is enabled.
+              {t('orphan.empty', 'No pending orphan redirects. Deleted content will appear here if orphan tracking is enabled.')}
             </Typography>
           </Box>
         ) : (
@@ -158,16 +163,16 @@ const OrphanRedirectPage = () => {
             <Thead>
               <Tr>
                 <Th>
-                  <Typography variant="sigma">FROM PATH</Typography>
+                  <Typography variant="sigma">{t('orphan.table.from', 'FROM PATH')}</Typography>
                 </Th>
                 <Th>
-                  <Typography variant="sigma">CONTENT TYPE</Typography>
+                  <Typography variant="sigma">{t('orphan.table.contentType', 'CONTENT TYPE')}</Typography>
                 </Th>
                 <Th>
-                  <Typography variant="sigma">SLUG</Typography>
+                  <Typography variant="sigma">{t('orphan.table.slug', 'SLUG')}</Typography>
                 </Th>
                 <Th>
-                  <Typography variant="sigma">ACTIONS</Typography>
+                  <Typography variant="sigma">{t('orphan.table.actions', 'ACTIONS')}</Typography>
                 </Th>
               </Tr>
             </Thead>
@@ -189,14 +194,14 @@ const OrphanRedirectPage = () => {
                         size="S"
                         onClick={() => openResolveDialog(orphan.id)}
                       >
-                        Resolve
+                        {t('orphan.resolve', 'Resolve')}
                       </Button>
                       <Button
                         size="S"
                         variant="danger-light"
                         onClick={() => openDismissDialog(orphan.id)}
                       >
-                        Dismiss
+                        {t('orphan.dismiss', 'Dismiss')}
                       </Button>
                     </Flex>
                   </Td>
@@ -210,17 +215,17 @@ const OrphanRedirectPage = () => {
       {/* Resolve dialog */}
       <Dialog.Root open={resolveDialogOpen} onOpenChange={setResolveDialogOpen}>
         <Dialog.Content>
-          <Dialog.Header>Resolve Orphan Redirect</Dialog.Header>
+          <Dialog.Header>{t('orphan.resolve.title', 'Resolve Orphan Redirect')}</Dialog.Header>
           <Dialog.Body>
             <Box paddingBottom={4}>
               <Typography textColor="neutral600">
-                Create a 301 redirect from the deleted content's path to a new destination.
+                {t('orphan.resolve.description', "Create a 301 redirect from the deleted content's path to a new destination.")}
               </Typography>
             </Box>
             <Field.Root name="resolveTo" error={resolveError} required>
-              <Field.Label>Redirect to (destination path)</Field.Label>
+              <Field.Label>{t('orphan.resolve.to', 'Redirect to (destination path)')}</Field.Label>
               <TextInput
-                placeholder="/new-destination"
+                placeholder={t('orphan.resolve.to.placeholder', '/new-destination')}
                 value={resolveTo}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   setResolveTo(e.target.value);
@@ -232,11 +237,11 @@ const OrphanRedirectPage = () => {
           </Dialog.Body>
           <Dialog.Footer>
             <Dialog.Cancel>
-              <Button variant="tertiary">Cancel</Button>
+              <Button variant="tertiary">{t('common.cancel', 'Cancel')}</Button>
             </Dialog.Cancel>
             <Dialog.Action>
               <Button onClick={handleResolveConfirm} loading={isSubmitting}>
-                Create Redirect
+                {t('orphan.resolve.submit', 'Create Redirect')}
               </Button>
             </Dialog.Action>
           </Dialog.Footer>
@@ -246,17 +251,17 @@ const OrphanRedirectPage = () => {
       {/* Dismiss dialog */}
       <Dialog.Root open={dismissDialogOpen} onOpenChange={setDismissDialogOpen}>
         <Dialog.Content>
-          <Dialog.Header>Dismiss Orphan Redirect</Dialog.Header>
+          <Dialog.Header>{t('orphan.dismiss.title', 'Dismiss Orphan Redirect')}</Dialog.Header>
           <Dialog.Body>
-            Are you sure you want to dismiss this orphan redirect? No redirect will be created for this path.
+            {t('orphan.dismiss.confirm', 'Are you sure you want to dismiss this orphan redirect? No redirect will be created for this path.')}
           </Dialog.Body>
           <Dialog.Footer>
             <Dialog.Cancel>
-              <Button variant="tertiary">Cancel</Button>
+              <Button variant="tertiary">{t('common.cancel', 'Cancel')}</Button>
             </Dialog.Cancel>
             <Dialog.Action>
               <Button variant="danger" onClick={handleDismissConfirm} loading={isSubmitting}>
-                Dismiss
+                {t('orphan.dismiss', 'Dismiss')}
               </Button>
             </Dialog.Action>
           </Dialog.Footer>

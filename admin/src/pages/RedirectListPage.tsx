@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useIntl } from 'react-intl';
 import {
   Box,
   Button,
@@ -26,6 +27,7 @@ import { Pencil, Trash, Plus } from '@strapi/icons';
 import { useNavigate } from 'react-router-dom';
 import { useFetchClient, useNotification } from '@strapi/strapi/admin';
 import { PLUGIN_ID } from '../pluginId';
+import { getTranslation } from '../utils/getTranslation';
 
 interface Redirect {
   id: number;
@@ -71,9 +73,13 @@ function validateForm(values: FormValues): Record<string, string> {
 }
 
 const RedirectListPage = () => {
+  const { formatMessage } = useIntl();
   const { get, post, put, del } = useFetchClient();
   const { toggleNotification } = useNotification();
   const navigate = useNavigate();
+
+  const t = (id: string, defaultMessage: string) =>
+    formatMessage({ id: getTranslation(id), defaultMessage });
 
   const [redirects, setRedirects] = useState<Redirect[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -96,7 +102,7 @@ const RedirectListPage = () => {
     } catch {
       toggleNotification({
         type: 'danger',
-        message: 'Failed to load redirects',
+        message: t('redirect.load.error', 'Failed to load redirects'),
       });
     } finally {
       setIsLoading(false);
@@ -157,16 +163,16 @@ const RedirectListPage = () => {
 
       if (editingId !== null) {
         await put(`/${PLUGIN_ID}/redirects/${editingId}`, payload);
-        toggleNotification({ type: 'success', message: 'Redirect updated' });
+        toggleNotification({ type: 'success', message: t('redirect.updated', 'Redirect updated') });
       } else {
         await post(`/${PLUGIN_ID}/redirects`, payload);
-        toggleNotification({ type: 'success', message: 'Redirect created' });
+        toggleNotification({ type: 'success', message: t('redirect.created', 'Redirect created') });
       }
 
       setModalOpen(false);
       await fetchRedirects();
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to save redirect';
+      const message = err instanceof Error ? err.message : t('redirect.create.error', 'Failed to save redirect');
       toggleNotification({ type: 'danger', message });
     } finally {
       setIsSubmitting(false);
@@ -178,7 +184,7 @@ const RedirectListPage = () => {
       await put(`/${PLUGIN_ID}/redirects/${redirect.id}/toggle`, {});
       await fetchRedirects();
     } catch {
-      toggleNotification({ type: 'danger', message: 'Failed to toggle redirect' });
+      toggleNotification({ type: 'danger', message: t('redirect.toggle.error', 'Failed to toggle redirect') });
     }
   };
 
@@ -191,12 +197,12 @@ const RedirectListPage = () => {
     if (deletingId === null) return;
     try {
       await del(`/${PLUGIN_ID}/redirects/${deletingId}`);
-      toggleNotification({ type: 'success', message: 'Redirect deleted' });
+      toggleNotification({ type: 'success', message: t('redirect.deleted', 'Redirect deleted') });
       setDeleteDialogOpen(false);
       setDeletingId(null);
       await fetchRedirects();
     } catch {
-      toggleNotification({ type: 'danger', message: 'Failed to delete redirect' });
+      toggleNotification({ type: 'danger', message: t('redirect.delete.error', 'Failed to delete redirect') });
     }
   };
 
@@ -204,7 +210,7 @@ const RedirectListPage = () => {
     return (
       <Main>
         <Flex justifyContent="center" padding={8}>
-          <Loader>Loading redirects...</Loader>
+          <Loader>{t('redirect.loading', 'Loading redirects...')}</Loader>
         </Flex>
       </Main>
     );
@@ -215,14 +221,14 @@ const RedirectListPage = () => {
       <Box padding={8}>
         <Flex justifyContent="space-between" alignItems="center" paddingBottom={6}>
           <Typography variant="alpha" tag="h1">
-            Redirects
+            {t('redirect.title', 'Redirects')}
           </Typography>
           <Flex gap={2}>
             <Button variant="secondary" onClick={() => navigate('orphans')}>
-              Orphan Redirects
+              {t('orphan.title', 'Orphan Redirects')}
             </Button>
             <Button startIcon={<Plus />} onClick={openCreateModal}>
-              New Redirect
+              {t('redirect.new', 'New Redirect')}
             </Button>
           </Flex>
         </Flex>
@@ -230,7 +236,7 @@ const RedirectListPage = () => {
         {redirects.length === 0 ? (
           <Box padding={6} background="neutral100" borderRadius="4px">
             <Typography textColor="neutral600">
-              No redirects yet. Click "New Redirect" to add one.
+              {t('redirect.empty', 'No redirects yet. Click "New Redirect" to add one.')}
             </Typography>
           </Box>
         ) : (
@@ -238,22 +244,22 @@ const RedirectListPage = () => {
             <Thead>
               <Tr>
                 <Th>
-                  <Typography variant="sigma">FROM</Typography>
+                  <Typography variant="sigma">{t('redirect.table.from', 'FROM')}</Typography>
                 </Th>
                 <Th>
-                  <Typography variant="sigma">TO</Typography>
+                  <Typography variant="sigma">{t('redirect.table.to', 'TO')}</Typography>
                 </Th>
                 <Th>
-                  <Typography variant="sigma">TYPE</Typography>
+                  <Typography variant="sigma">{t('redirect.table.type', 'TYPE')}</Typography>
                 </Th>
                 <Th>
-                  <Typography variant="sigma">STATUS</Typography>
+                  <Typography variant="sigma">{t('redirect.table.status', 'STATUS')}</Typography>
                 </Th>
                 <Th>
-                  <Typography variant="sigma">ACTIVE</Typography>
+                  <Typography variant="sigma">{t('redirect.table.active', 'ACTIVE')}</Typography>
                 </Th>
                 <Th>
-                  <Typography variant="sigma">ACTIONS</Typography>
+                  <Typography variant="sigma">{t('redirect.table.actions', 'ACTIONS')}</Typography>
                 </Th>
               </Tr>
             </Thead>
@@ -271,29 +277,31 @@ const RedirectListPage = () => {
                   </Td>
                   <Td>
                     <Badge active={redirect.isActive}>
-                      {redirect.isActive ? 'Active' : 'Inactive'}
+                      {redirect.isActive
+                        ? t('redirect.active.label', 'Active')
+                        : t('redirect.inactive.label', 'Inactive')}
                     </Badge>
                   </Td>
                   <Td>
                     <Toggle
                       checked={redirect.isActive}
                       onChange={() => handleToggleActive(redirect)}
-                      onLabel="On"
-                      offLabel="Off"
+                      onLabel={t('common.on', 'On')}
+                      offLabel={t('common.off', 'Off')}
                       aria-label={`Toggle active for ${redirect.from}`}
                     />
                   </Td>
                   <Td>
                     <Flex gap={2}>
                       <IconButton
-                        label="Edit"
+                        label={t('common.edit', 'Edit')}
                         withTooltip={false}
                         onClick={() => openEditModal(redirect)}
                       >
                         <Pencil />
                       </IconButton>
                       <IconButton
-                        label="Delete"
+                        label={t('common.delete', 'Delete')}
                         withTooltip={false}
                         onClick={() => openDeleteDialog(redirect.id)}
                       >
@@ -311,9 +319,11 @@ const RedirectListPage = () => {
       {/* Add/Edit Modal */}
       <Modal.Root open={modalOpen} onOpenChange={setModalOpen}>
         <Modal.Content>
-          <Modal.Header closeLabel="Close">
+          <Modal.Header closeLabel={t('common.cancel', 'Cancel')}>
             <Modal.Title>
-              {editingId !== null ? 'Edit Redirect' : 'New Redirect'}
+              {editingId !== null
+                ? t('redirect.edit', 'Edit Redirect')
+                : t('redirect.new', 'New Redirect')}
             </Modal.Title>
           </Modal.Header>
           <Modal.Body>
@@ -323,9 +333,9 @@ const RedirectListPage = () => {
                 error={formErrors['from']}
                 required
               >
-                <Field.Label>From (source path)</Field.Label>
+                <Field.Label>{t('redirect.from', 'From (source path)')}</Field.Label>
                 <TextInput
-                  placeholder="/old-path"
+                  placeholder={t('redirect.from.placeholder', '/old-path')}
                   value={formValues.from}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     handleFormChange('from', e.target.value)
@@ -339,9 +349,9 @@ const RedirectListPage = () => {
                 error={formErrors['to']}
                 required
               >
-                <Field.Label>To (destination path)</Field.Label>
+                <Field.Label>{t('redirect.to', 'To (destination path)')}</Field.Label>
                 <TextInput
-                  placeholder="/new-path"
+                  placeholder={t('redirect.to.placeholder', '/new-path')}
                   value={formValues.to}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     handleFormChange('to', e.target.value)
@@ -351,33 +361,37 @@ const RedirectListPage = () => {
               </Field.Root>
 
               <Field.Root name="type">
-                <Field.Label>Redirect Type</Field.Label>
+                <Field.Label>{t('redirect.type', 'Redirect Type')}</Field.Label>
                 <SingleSelect
                   value={formValues.type}
                   onChange={(value: string | number) =>
                     handleFormChange('type', String(value) as 'permanent' | 'temporary')
                   }
                 >
-                  <SingleSelectOption value="permanent">301 — Permanent</SingleSelectOption>
-                  <SingleSelectOption value="temporary">302 — Temporary</SingleSelectOption>
+                  <SingleSelectOption value="permanent">
+                    {t('redirect.type.permanent', '301 — Permanent')}
+                  </SingleSelectOption>
+                  <SingleSelectOption value="temporary">
+                    {t('redirect.type.temporary', '302 — Temporary')}
+                  </SingleSelectOption>
                 </SingleSelect>
               </Field.Root>
 
               <Field.Root name="isActive">
-                <Field.Label>Active</Field.Label>
+                <Field.Label>{t('redirect.active', 'Active')}</Field.Label>
                 <Toggle
                   checked={formValues.isActive}
                   onChange={() => handleFormChange('isActive', !formValues.isActive)}
-                  onLabel="On"
-                  offLabel="Off"
+                  onLabel={t('common.on', 'On')}
+                  offLabel={t('common.off', 'Off')}
                   aria-label="Redirect active"
                 />
               </Field.Root>
 
               <Field.Root name="comment">
-                <Field.Label>Comment (optional)</Field.Label>
+                <Field.Label>{t('redirect.comment', 'Comment (optional)')}</Field.Label>
                 <TextInput
-                  placeholder="Reason for this redirect..."
+                  placeholder={t('redirect.comment.placeholder', 'Reason for this redirect...')}
                   value={formValues.comment}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     handleFormChange('comment', e.target.value)
@@ -388,10 +402,12 @@ const RedirectListPage = () => {
           </Modal.Body>
           <Modal.Footer>
             <Modal.Close>
-              <Button variant="tertiary">Cancel</Button>
+              <Button variant="tertiary">{t('common.cancel', 'Cancel')}</Button>
             </Modal.Close>
             <Button onClick={handleSubmit} loading={isSubmitting}>
-              {editingId !== null ? 'Save Changes' : 'Create'}
+              {editingId !== null
+                ? t('redirect.save', 'Save Changes')
+                : t('redirect.create', 'Create')}
             </Button>
           </Modal.Footer>
         </Modal.Content>
@@ -400,17 +416,17 @@ const RedirectListPage = () => {
       {/* Delete Confirmation Dialog */}
       <Dialog.Root open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <Dialog.Content>
-          <Dialog.Header>Delete Redirect</Dialog.Header>
+          <Dialog.Header>{t('redirect.delete.title', 'Delete Redirect')}</Dialog.Header>
           <Dialog.Body>
-            Are you sure you want to delete this redirect? This action cannot be undone.
+            {t('redirect.delete.confirm', 'Are you sure you want to delete this redirect? This action cannot be undone.')}
           </Dialog.Body>
           <Dialog.Footer>
             <Dialog.Cancel>
-              <Button variant="tertiary">Cancel</Button>
+              <Button variant="tertiary">{t('common.cancel', 'Cancel')}</Button>
             </Dialog.Cancel>
             <Dialog.Action>
               <Button variant="danger" onClick={handleDeleteConfirm}>
-                Delete
+                {t('redirect.delete', 'Delete')}
               </Button>
             </Dialog.Action>
           </Dialog.Footer>

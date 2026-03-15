@@ -255,6 +255,55 @@ describe('redirectController', () => {
           "'from' is required and must be a non-empty string.",
         );
       });
+
+      it('should reject reserved path /admin as from', async () => {
+        const ctx = createMockCtx({
+          body: { from: '/admin', to: '/destination' },
+        });
+
+        await controller.create(ctx as unknown as Parameters<typeof controller.create>[0]);
+
+        expect(ctx.badRequest).toHaveBeenCalledWith(
+          "'from' must not target a reserved Strapi path (e.g. /admin, /api).",
+        );
+        expect(mockService.create).not.toHaveBeenCalled();
+      });
+
+      it('should reject reserved path /api/something as from', async () => {
+        const ctx = createMockCtx({
+          body: { from: '/api/articles', to: '/destination' },
+        });
+
+        await controller.create(ctx as unknown as Parameters<typeof controller.create>[0]);
+
+        expect(ctx.badRequest).toHaveBeenCalledWith(
+          "'from' must not target a reserved Strapi path (e.g. /admin, /api).",
+        );
+      });
+
+      it('should reject reserved path /upload as from', async () => {
+        const ctx = createMockCtx({
+          body: { from: '/upload/files', to: '/destination' },
+        });
+
+        await controller.create(ctx as unknown as Parameters<typeof controller.create>[0]);
+
+        expect(ctx.badRequest).toHaveBeenCalledWith(
+          "'from' must not target a reserved Strapi path (e.g. /admin, /api).",
+        );
+      });
+
+      it('should reject reserved path case-insensitively', async () => {
+        const ctx = createMockCtx({
+          body: { from: '/Admin/settings', to: '/destination' },
+        });
+
+        await controller.create(ctx as unknown as Parameters<typeof controller.create>[0]);
+
+        expect(ctx.badRequest).toHaveBeenCalledWith(
+          "'from' must not target a reserved Strapi path (e.g. /admin, /api).",
+        );
+      });
     });
 
     describe('success', () => {
@@ -502,6 +551,33 @@ describe('redirectController', () => {
 
         expect(ctx.badRequest).toHaveBeenCalledWith('comment must be a string');
         expect(mockService.update).not.toHaveBeenCalled();
+      });
+
+      it('should reject reserved path /admin as from on update', async () => {
+        const ctx = createMockCtx({
+          params: { id: '1' },
+          body: { from: '/admin' },
+        });
+
+        await controller.update(ctx as unknown as Parameters<typeof controller.update>[0]);
+
+        expect(ctx.badRequest).toHaveBeenCalledWith(
+          "'from' must not target a reserved Strapi path (e.g. /admin, /api).",
+        );
+        expect(mockService.update).not.toHaveBeenCalled();
+      });
+
+      it('should reject reserved path /api as from on update', async () => {
+        const ctx = createMockCtx({
+          params: { id: '1' },
+          body: { from: '/api/posts' },
+        });
+
+        await controller.update(ctx as unknown as Parameters<typeof controller.update>[0]);
+
+        expect(ctx.badRequest).toHaveBeenCalledWith(
+          "'from' must not target a reserved Strapi path (e.g. /admin, /api).",
+        );
       });
     });
 

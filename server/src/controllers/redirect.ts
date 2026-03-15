@@ -5,6 +5,8 @@ type KoaContext = Parameters<Core.Controller[string]>[0];
 
 const VALID_TYPES = ['permanent', 'temporary'] as const;
 
+const RESERVED_PATH_PREFIXES = ['/admin', '/api', '/_health', '/content-manager', '/content-type-builder', '/upload'] as const;
+
 function validateSlugPath(value: unknown, fieldName: string): string | null {
   if (typeof value !== 'string' || value.trim() === '') {
     return `'${fieldName}' is required and must be a non-empty string.`;
@@ -16,6 +18,13 @@ function validateSlugPath(value: unknown, fieldName: string): string | null {
     return `'${fieldName}' must start with '/'.`;
   }
   return null;
+}
+
+function isReservedPath(path: string): boolean {
+  const lower = path.toLowerCase();
+  return RESERVED_PATH_PREFIXES.some(
+    (prefix) => lower === prefix || lower.startsWith(`${prefix}/`),
+  );
 }
 
 const redirectController = ({ strapi }: { strapi: Core.Strapi }) => {
@@ -46,6 +55,10 @@ const redirectController = ({ strapi }: { strapi: Core.Strapi }) => {
 
       const fromError = validateSlugPath(body['from'], 'from');
       if (fromError) return ctx.badRequest(fromError);
+
+      if (isReservedPath(body['from'] as string)) {
+        return ctx.badRequest("'from' must not target a reserved Strapi path (e.g. /admin, /api).");
+      }
 
       const toError = validateSlugPath(body['to'], 'to');
       if (toError) return ctx.badRequest(toError);
@@ -83,6 +96,9 @@ const redirectController = ({ strapi }: { strapi: Core.Strapi }) => {
       if (body['from'] !== undefined) {
         const fromError = validateSlugPath(body['from'], 'from');
         if (fromError) return ctx.badRequest(fromError);
+        if (isReservedPath(body['from'] as string)) {
+          return ctx.badRequest("'from' must not target a reserved Strapi path (e.g. /admin, /api).");
+        }
         updateData['from'] = body['from'];
       }
 

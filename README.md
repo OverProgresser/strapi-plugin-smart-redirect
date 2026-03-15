@@ -152,8 +152,10 @@ The cache is populated lazily on first request and invalidated automatically whe
 
 - All routes require a valid Strapi admin JWT — no public endpoints.
 - `from` and `to` must start with `/`. External URLs and protocol-relative URLs (`//`) are rejected.
+- Reserved Strapi paths (`/admin`, `/api`, `/upload`, `/_health`, `/content-manager`, `/content-type-builder`) cannot be used as redirect sources — prevents accidentally locking out admin or API access.
 - The middleware skips any cached entry whose `to` value starts with `http://` or `https://`.
 - Error responses never expose stack traces or internal file paths.
+- The `from` field has a database-level unique constraint to prevent duplicate entries under race conditions.
 
 ---
 

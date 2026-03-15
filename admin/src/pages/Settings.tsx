@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useIntl } from 'react-intl';
 import {
   Box,
   Button,
@@ -20,6 +21,7 @@ import {
 } from '@strapi/design-system';
 import { useFetchClient, useNotification } from '@strapi/strapi/admin';
 import { PLUGIN_ID } from '../pluginId';
+import { getTranslation } from '../utils/getTranslation';
 
 interface ContentTypeInfo {
   uid: string;
@@ -48,8 +50,12 @@ const DEFAULT_SETTINGS: PluginSettings = {
 };
 
 const Settings = () => {
+  const { formatMessage } = useIntl();
   const { get, post } = useFetchClient();
   const { toggleNotification } = useNotification();
+
+  const t = (id: string, defaultMessage: string) =>
+    formatMessage({ id: getTranslation(id), defaultMessage });
 
   const [contentTypes, setContentTypes] = useState<ContentTypeInfo[]>([]);
   const [settings, setSettings] = useState<PluginSettings>(DEFAULT_SETTINGS);
@@ -73,7 +79,7 @@ const Settings = () => {
       } catch {
         toggleNotification({
           type: 'danger',
-          message: 'Failed to load settings',
+          message: t('settings.load.error', 'Failed to load settings'),
         });
       } finally {
         setIsLoading(false);
@@ -136,12 +142,12 @@ const Settings = () => {
       await post(`/${PLUGIN_ID}/settings`, settings);
       toggleNotification({
         type: 'success',
-        message: 'Settings saved successfully',
+        message: t('settings.saved', 'Settings saved successfully'),
       });
     } catch {
       toggleNotification({
         type: 'danger',
-        message: 'Failed to save settings',
+        message: t('settings.save.error', 'Failed to save settings'),
       });
     } finally {
       setIsSaving(false);
@@ -152,7 +158,7 @@ const Settings = () => {
     return (
       <Main>
         <Flex justifyContent="center" padding={8}>
-          <Loader>Loading settings...</Loader>
+          <Loader>{t('settings.loading', 'Loading settings...')}</Loader>
         </Flex>
       </Main>
     );
@@ -163,49 +169,55 @@ const Settings = () => {
       <Box padding={8}>
         <Flex justifyContent="space-between" alignItems="center" paddingBottom={6}>
           <Typography variant="alpha" tag="h1">
-            Redirect Manager Settings
+            {t('settings.title', 'Redirect Manager Settings')}
           </Typography>
           <Button onClick={handleSave} loading={isSaving}>
-            Save
+            {t('settings.save', 'Save')}
           </Button>
         </Flex>
 
         {/* Feature toggles */}
         <Box paddingBottom={6}>
           <Typography variant="delta" tag="h2" paddingBottom={4}>
-            Features
+            {t('settings.features', 'Features')}
           </Typography>
           <Flex direction="column" gap={5} alignItems="flex-start">
             <Box>
-              <Typography paddingBottom={1} fontWeight="bold">Auto-create redirect when slug changes</Typography>
+              <Typography paddingBottom={1} fontWeight="bold">
+                {t('settings.autoRedirect', 'Auto-create redirect when slug changes')}
+              </Typography>
               <Toggle
                 checked={settings.autoRedirectOnSlugChange}
                 onChange={() => handleFeatureToggle('autoRedirectOnSlugChange')}
-                onLabel="On"
-                offLabel="Off"
-                aria-label="Auto-create redirect on slug change"
+                onLabel={t('common.on', 'On')}
+                offLabel={t('common.off', 'Off')}
+                aria-label={t('settings.autoRedirect', 'Auto-create redirect on slug change')}
               />
             </Box>
 
             <Box>
-              <Typography paddingBottom={1} fontWeight="bold">Enable chain detection (blocks chains longer than 10 hops)</Typography>
+              <Typography paddingBottom={1} fontWeight="bold">
+                {t('settings.chainDetection', 'Enable chain detection (blocks chains longer than 10 hops)')}
+              </Typography>
               <Toggle
                 checked={settings.chainDetectionEnabled}
                 onChange={() => handleFeatureToggle('chainDetectionEnabled')}
-                onLabel="On"
-                offLabel="Off"
-                aria-label="Enable chain detection"
+                onLabel={t('common.on', 'On')}
+                offLabel={t('common.off', 'Off')}
+                aria-label={t('settings.chainDetection', 'Enable chain detection')}
               />
             </Box>
 
             <Box>
-              <Typography paddingBottom={1} fontWeight="bold">Enable orphan redirect tracking (creates pending entries on content deletion)</Typography>
+              <Typography paddingBottom={1} fontWeight="bold">
+                {t('settings.orphanTracking', 'Enable orphan redirect tracking (creates pending entries on content deletion)')}
+              </Typography>
               <Toggle
                 checked={settings.orphanRedirectEnabled}
                 onChange={() => handleFeatureToggle('orphanRedirectEnabled')}
-                onLabel="On"
-                offLabel="Off"
-                aria-label="Enable orphan redirect tracking"
+                onLabel={t('common.on', 'On')}
+                offLabel={t('common.off', 'Off')}
+                aria-label={t('settings.orphanTracking', 'Enable orphan redirect tracking')}
               />
             </Box>
           </Flex>
@@ -213,22 +225,22 @@ const Settings = () => {
 
         {/* Content type table */}
         <Typography variant="delta" tag="h2" paddingBottom={4}>
-          Content Types
+          {t('settings.contentTypes', 'Content Types')}
         </Typography>
         <Table colCount={4} rowCount={contentTypes.length}>
           <Thead>
             <Tr>
               <Th>
-                <Typography variant="sigma">Content Type</Typography>
+                <Typography variant="sigma">{t('settings.contentType', 'Content Type')}</Typography>
               </Th>
               <Th>
-                <Typography variant="sigma">Enabled</Typography>
+                <Typography variant="sigma">{t('settings.enabled', 'Enabled')}</Typography>
               </Th>
               <Th>
-                <Typography variant="sigma">Slug Field</Typography>
+                <Typography variant="sigma">{t('settings.slugField', 'Slug Field')}</Typography>
               </Th>
               <Th>
-                <Typography variant="sigma">URL Prefix</Typography>
+                <Typography variant="sigma">{t('settings.urlPrefix', 'URL Prefix')}</Typography>
               </Th>
             </Tr>
           </Thead>
@@ -258,7 +270,7 @@ const Settings = () => {
                         handleSlugFieldChange(ct.uid, String(value))
                       }
                       disabled={!ctSettings.enabled}
-                      placeholder="Select slug field"
+                      placeholder={t('settings.slugField.placeholder', 'Select slug field')}
                     >
                       {ct.attributes.map((attr) => (
                         <SingleSelectOption key={attr} value={attr}>
@@ -269,7 +281,7 @@ const Settings = () => {
                   </Td>
                   <Td>
                     <TextInput
-                      placeholder="/blog"
+                      placeholder={t('settings.urlPrefix.placeholder', '/blog')}
                       value={ctSettings.urlPrefix ?? ''}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         handleUrlPrefixChange(ct.uid, e.target.value)

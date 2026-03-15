@@ -19,6 +19,7 @@ export default {
     from: {
       type: 'string',
       required: true,
+      unique: true,
     },
     to: {
       type: 'string',
