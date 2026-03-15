@@ -206,8 +206,8 @@ describe('redirectService', () => {
   describe('findAll', () => {
     it('should query all redirects ordered by createdAt desc', async () => {
       const mockRedirects = [
-        { id: 2, from: '/b', to: '/c', type: '301', isActive: true },
-        { id: 1, from: '/a', to: '/b', type: '302', isActive: false },
+        { id: 2, from: '/b', to: '/c', type: 'permanent', isActive: true },
+        { id: 1, from: '/a', to: '/b', type: 'temporary', isActive: false },
       ];
       mockQuery.findMany.mockResolvedValue(mockRedirects);
 
@@ -236,7 +236,7 @@ describe('redirectService', () => {
   describe('findActive', () => {
     it('should query only active redirects', async () => {
       const mockRedirects = [
-        { id: 1, from: '/a', to: '/b', type: '301', isActive: true },
+        { id: 1, from: '/a', to: '/b', type: 'permanent', isActive: true },
       ];
       mockQuery.findMany.mockResolvedValue(mockRedirects);
 
@@ -261,7 +261,7 @@ describe('redirectService', () => {
         id: 1,
         from: '/old',
         to: '/new',
-        type: '301',
+        type: 'permanent',
         isActive: true,
       };
       mockQuery.findOne.mockResolvedValue(mockRedirect);
@@ -303,7 +303,7 @@ describe('redirectService', () => {
         id: 5,
         from: '/old',
         to: '/new',
-        type: '301',
+        type: 'permanent',
         isActive: true,
       };
       mockQuery.findOne.mockResolvedValue(mockRedirect);
@@ -337,7 +337,7 @@ describe('redirectService', () => {
         id: 1,
         from: '/old-path',
         to: '/new-path',
-        type: '301',
+        type: 'permanent',
         isActive: true,
       };
       mockQuery.create.mockResolvedValue(created);
@@ -345,7 +345,7 @@ describe('redirectService', () => {
       const input = {
         from: '/old-path',
         to: '/new-path',
-        type: '301' as const,
+        type: 'permanent' as const,
         isActive: true,
       };
       const result = await service.create(input);
@@ -369,7 +369,7 @@ describe('redirectService', () => {
       });
 
       await expect(
-        service.create({ from: '/existing', to: '/new', type: '301' }),
+        service.create({ from: '/existing', to: '/new', type: 'permanent' }),
       ).rejects.toThrow("A redirect from '/existing' already exists.");
     });
 
@@ -381,7 +381,7 @@ describe('redirectService', () => {
       });
 
       await expect(
-        service.create({ from: '/existing', to: '/new', type: '301' }),
+        service.create({ from: '/existing', to: '/new', type: 'permanent' }),
       ).rejects.toThrow();
 
       expect(mockQuery.create).not.toHaveBeenCalled();
@@ -393,7 +393,7 @@ describe('redirectService', () => {
         id: 2,
         from: '/a',
         to: '/b',
-        type: '302',
+        type: 'temporary',
         isActive: false,
         comment: 'test note',
       });
@@ -401,7 +401,7 @@ describe('redirectService', () => {
       await service.create({
         from: '/a',
         to: '/b',
-        type: '302',
+        type: 'temporary',
         isActive: false,
         comment: 'test note',
       });
@@ -410,7 +410,7 @@ describe('redirectService', () => {
         data: {
           from: '/a',
           to: '/b',
-          type: '302',
+          type: 'temporary',
           isActive: false,
           comment: 'test note',
         },
@@ -428,7 +428,7 @@ describe('redirectService', () => {
         id: 1,
         from: '/old',
         to: '/updated-dest',
-        type: '301',
+        type: 'permanent',
         isActive: true,
       };
       mockQuery.update.mockResolvedValue(updated);
@@ -451,7 +451,7 @@ describe('redirectService', () => {
         id: 1,
         from: '/new-from',
         to: '/dest',
-        type: '301',
+        type: 'permanent',
         isActive: true,
       };
       mockQuery.update.mockResolvedValue(updated);
@@ -478,7 +478,7 @@ describe('redirectService', () => {
         id: 1,
         from: '/same-from',
         to: '/new-dest',
-        type: '301',
+        type: 'permanent',
         isActive: true,
       });
 
@@ -537,14 +537,14 @@ describe('redirectService', () => {
         id: 1,
         from: '/a',
         to: '/b',
-        type: '301',
+        type: 'permanent',
         isActive: true,
       });
       mockQuery.update.mockResolvedValue({
         id: 1,
         from: '/a',
         to: '/b',
-        type: '301',
+        type: 'permanent',
         isActive: false,
       });
 
@@ -565,14 +565,14 @@ describe('redirectService', () => {
         id: 2,
         from: '/x',
         to: '/y',
-        type: '302',
+        type: 'temporary',
         isActive: false,
       });
       mockQuery.update.mockResolvedValue({
         id: 2,
         from: '/x',
         to: '/y',
-        type: '302',
+        type: 'temporary',
         isActive: true,
       });
 
@@ -617,15 +617,15 @@ describe('redirectService', () => {
         mockQuery.findOne
           .mockResolvedValueOnce(null)  // conflict check
           .mockResolvedValueOnce(null); // chain check: /b has no redirect
-        const created = { id: 1, from: '/a', to: '/b', type: '301', isActive: true };
+        const created = { id: 1, from: '/a', to: '/b', type: 'permanent', isActive: true };
         mockQuery.create.mockResolvedValue(created);
 
         await expect(
-          service.create({ from: '/a', to: '/b', type: '301' }),
+          service.create({ from: '/a', to: '/b', type: 'permanent' }),
         ).resolves.toEqual(created);
 
         expect(mockQuery.create).toHaveBeenCalledWith({
-          data: { from: '/a', to: '/b', type: '301' },
+          data: { from: '/a', to: '/b', type: 'permanent' },
         });
       });
 
@@ -646,7 +646,7 @@ describe('redirectService', () => {
           .mockResolvedValueOnce({ from: '/10', to: '/11' });      // chain depth 10 → /11
 
         await expect(
-          service.create({ from: '/new', to: '/1', type: '301' }),
+          service.create({ from: '/new', to: '/1', type: 'permanent' }),
         ).rejects.toThrow('Redirect chain exceeds maximum depth of 10 hops.');
 
         expect(mockQuery.create).not.toHaveBeenCalled();
@@ -666,15 +666,15 @@ describe('redirectService', () => {
           .mockResolvedValueOnce({ from: '/8', to: '/9' })    // depth 8
           .mockResolvedValueOnce({ from: '/9', to: '/10' })   // depth 9
           .mockResolvedValueOnce(null);                        // depth 10: /10 has no redirect → valid
-        const created = { id: 1, from: '/new', to: '/1', type: '301', isActive: true };
+        const created = { id: 1, from: '/new', to: '/1', type: 'permanent', isActive: true };
         mockQuery.create.mockResolvedValue(created);
 
         await expect(
-          service.create({ from: '/new', to: '/1', type: '301' }),
+          service.create({ from: '/new', to: '/1', type: 'permanent' }),
         ).resolves.toEqual(created);
 
         expect(mockQuery.create).toHaveBeenCalledWith({
-          data: { from: '/new', to: '/1', type: '301' },
+          data: { from: '/new', to: '/1', type: 'permanent' },
         });
       });
 
@@ -686,7 +686,7 @@ describe('redirectService', () => {
           .mockResolvedValueOnce({ from: '/b', to: '/a' });   // chain depth 1: /b → /a (cycle!)
 
         await expect(
-          service.create({ from: '/a', to: '/b', type: '301' }),
+          service.create({ from: '/a', to: '/b', type: 'permanent' }),
         ).rejects.toThrow('Redirect chain contains a cycle.');
 
         expect(mockQuery.create).not.toHaveBeenCalled();
@@ -697,18 +697,18 @@ describe('redirectService', () => {
 
         // Only conflict check findOne — no chain check
         mockQuery.findOne.mockResolvedValueOnce(null);
-        const created = { id: 1, from: '/a', to: '/b', type: '301', isActive: true };
+        const created = { id: 1, from: '/a', to: '/b', type: 'permanent', isActive: true };
         mockQuery.create.mockResolvedValue(created);
 
         await expect(
-          service.create({ from: '/a', to: '/b', type: '301' }),
+          service.create({ from: '/a', to: '/b', type: 'permanent' }),
         ).resolves.toEqual(created);
 
         // Only one findOne call (conflict check), chain check was skipped
         expect(mockQuery.findOne).toHaveBeenCalledTimes(1);
         expect(mockQuery.findOne).toHaveBeenCalledWith({ where: { from: '/a' } });
         expect(mockQuery.create).toHaveBeenCalledWith({
-          data: { from: '/a', to: '/b', type: '301' },
+          data: { from: '/a', to: '/b', type: 'permanent' },
         });
       });
     });
@@ -732,7 +732,7 @@ describe('redirectService', () => {
       it('should skip chain check for update when chainDetectionEnabled is false', async () => {
         mockStoreData.get.mockResolvedValue({ ...chainEnabledSettings, chainDetectionEnabled: false });
 
-        const updated = { id: 1, from: '/a', to: '/b', type: '301', isActive: true };
+        const updated = { id: 1, from: '/a', to: '/b', type: 'permanent', isActive: true };
         mockQuery.update.mockResolvedValue(updated);
 
         const result = await service.update(1, { to: '/b' });
@@ -784,7 +784,7 @@ describe('redirectService', () => {
         const orphan = { id: 5, from: '/old-page', status: 'pending', contentType: 'api::page.page', slug: 'old-page' };
         mockQuery.findOne.mockResolvedValueOnce(orphan); // orphan lookup
         mockQuery.findOne.mockResolvedValueOnce(null);   // conflict check (no existing redirect)
-        mockQuery.create.mockResolvedValue({ id: 10, from: '/old-page', to: '/new-page', type: '301' });
+        mockQuery.create.mockResolvedValue({ id: 10, from: '/old-page', to: '/new-page', type: 'permanent' });
         mockQuery.update.mockResolvedValue({ id: 5, status: 'resolved' });
 
         await service.resolveOrphan(5, '/new-page');
@@ -793,7 +793,7 @@ describe('redirectService', () => {
         expect(mockQuery.findOne).toHaveBeenCalledWith({ where: { id: 5 } });
         // Should have created a redirect
         expect(mockQuery.create).toHaveBeenCalledWith({
-          data: expect.objectContaining({ from: '/old-page', to: '/new-page', type: '301' }),
+          data: expect.objectContaining({ from: '/old-page', to: '/new-page', type: 'permanent' }),
         });
         // Should have marked orphan as resolved
         expect(mockQuery.update).toHaveBeenCalledWith({

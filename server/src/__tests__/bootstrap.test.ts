@@ -504,7 +504,7 @@ describe('bootstrap', () => {
         id: 1,
         from: '/old-slug',
         to: '/new-slug',
-        type: '301',
+        type: 'permanent',
       });
 
       const event: LifecycleEvent = {
@@ -524,7 +524,7 @@ describe('bootstrap', () => {
       expect(mockRedirectService.create).toHaveBeenCalledWith({
         from: '/old-slug',
         to: '/new-slug',
-        type: '301',
+        type: 'permanent',
       });
     });
 
@@ -551,7 +551,7 @@ describe('bootstrap', () => {
       expect(mockRedirectService.create).toHaveBeenCalledWith({
         from: '/old',
         to: '/new',
-        type: '301',
+        type: 'permanent',
       });
     });
 
@@ -575,7 +575,7 @@ describe('bootstrap', () => {
       expect(mockRedirectService.create).toHaveBeenCalledWith({
         from: '/old',
         to: '/new',
-        type: '301',
+        type: 'permanent',
       });
     });
 
@@ -609,7 +609,7 @@ describe('bootstrap', () => {
       expect(mockRedirectService.create).toHaveBeenCalledWith({
         from: '/blog/old-post',
         to: '/blog/new-post',
-        type: '301',
+        type: 'permanent',
       });
     });
 
@@ -643,7 +643,7 @@ describe('bootstrap', () => {
       expect(mockRedirectService.create).toHaveBeenCalledWith({
         from: '/old',
         to: '/new',
-        type: '301',
+        type: 'permanent',
       });
     });
 

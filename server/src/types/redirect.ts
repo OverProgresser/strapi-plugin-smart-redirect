@@ -2,7 +2,7 @@ export interface Redirect {
   id: number;
   from: string;
   to: string;
-  type: '301' | '302';
+  type: 'permanent' | 'temporary';
   isActive: boolean;
   comment?: string;
   createdAt: string;
@@ -12,7 +12,7 @@ export interface Redirect {
 export interface CreateRedirectInput {
   from: string;
   to: string;
-  type?: '301' | '302';
+  type?: 'permanent' | 'temporary';
   isActive?: boolean;
   comment?: string;
 }
@@ -20,7 +20,7 @@ export interface CreateRedirectInput {
 export interface UpdateRedirectInput {
   from?: string;
   to?: string;
-  type?: '301' | '302';
+  type?: 'permanent' | 'temporary';
   isActive?: boolean;
   comment?: string;
 }

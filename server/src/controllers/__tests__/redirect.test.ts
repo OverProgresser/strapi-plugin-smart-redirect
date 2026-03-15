@@ -80,7 +80,7 @@ describe('redirectController', () => {
   describe('find', () => {
     it('should call service.findAll and set ctx.body with data wrapper', async () => {
       const redirects = [
-        { id: 1, from: '/a', to: '/b', type: '301', isActive: true },
+        { id: 1, from: '/a', to: '/b', type: 'permanent', isActive: true },
       ];
       mockService.findAll.mockResolvedValue(redirects);
       const ctx = createMockCtx();
@@ -98,7 +98,7 @@ describe('redirectController', () => {
 
   describe('findOne', () => {
     it('should return redirect wrapped in data object', async () => {
-      const redirect = { id: 5, from: '/a', to: '/b', type: '301', isActive: true };
+      const redirect = { id: 5, from: '/a', to: '/b', type: 'permanent', isActive: true };
       mockService.findOne.mockResolvedValue(redirect);
       const ctx = createMockCtx({ params: { id: '5' } });
 
@@ -135,7 +135,7 @@ describe('redirectController', () => {
     describe('validation', () => {
       it('should reject when from is missing', async () => {
         const ctx = createMockCtx({
-          body: { to: '/destination', type: '301' },
+          body: { to: '/destination', type: 'permanent' },
         });
 
         await controller.create(ctx as unknown as Parameters<typeof controller.create>[0]);
@@ -240,7 +240,7 @@ describe('redirectController', () => {
         await controller.create(ctx as unknown as Parameters<typeof controller.create>[0]);
 
         expect(ctx.badRequest).toHaveBeenCalledWith(
-          "'type' must be one of: 301, 302.",
+          "'type' must be one of: permanent, temporary.",
         );
       });
 
@@ -263,7 +263,7 @@ describe('redirectController', () => {
           id: 1,
           from: '/old',
           to: '/new',
-          type: '301',
+          type: 'permanent',
           isActive: true,
         };
         mockService.create.mockResolvedValue(created);
@@ -276,7 +276,7 @@ describe('redirectController', () => {
         expect(mockService.create).toHaveBeenCalledWith({
           from: '/old',
           to: '/new',
-          type: '301',
+          type: 'permanent',
           isActive: true,
           comment: undefined,
         });
@@ -289,17 +289,17 @@ describe('redirectController', () => {
           id: 2,
           from: '/temp-old',
           to: '/temp-new',
-          type: '302',
+          type: 'temporary',
           isActive: true,
         });
         const ctx = createMockCtx({
-          body: { from: '/temp-old', to: '/temp-new', type: '302' },
+          body: { from: '/temp-old', to: '/temp-new', type: 'temporary' },
         });
 
         await controller.create(ctx as unknown as Parameters<typeof controller.create>[0]);
 
         expect(mockService.create).toHaveBeenCalledWith(
-          expect.objectContaining({ type: '302' }),
+          expect.objectContaining({ type: 'temporary' }),
         );
       });
 
@@ -308,7 +308,7 @@ describe('redirectController', () => {
           id: 3,
           from: '/a',
           to: '/b',
-          type: '301',
+          type: 'permanent',
           isActive: false,
         });
         const ctx = createMockCtx({
@@ -327,7 +327,7 @@ describe('redirectController', () => {
           id: 4,
           from: '/a',
           to: '/b',
-          type: '301',
+          type: 'permanent',
           isActive: true,
         });
         const ctx = createMockCtx({
@@ -346,7 +346,7 @@ describe('redirectController', () => {
           id: 5,
           from: '/a',
           to: '/b',
-          type: '301',
+          type: 'permanent',
           isActive: true,
           comment: 'migration note',
         });
@@ -367,7 +367,7 @@ describe('redirectController', () => {
           id: 6,
           from: '/a',
           to: '/b',
-          type: '301',
+          type: 'permanent',
           isActive: true,
         });
         const ctx = createMockCtx({
@@ -488,7 +488,7 @@ describe('redirectController', () => {
         await controller.update(ctx as unknown as Parameters<typeof controller.update>[0]);
 
         expect(ctx.badRequest).toHaveBeenCalledWith(
-          "'type' must be one of: 301, 302.",
+          "'type' must be one of: permanent, temporary.",
         );
       });
 
@@ -511,7 +511,7 @@ describe('redirectController', () => {
           id: 1,
           from: '/old',
           to: '/updated-dest',
-          type: '301',
+          type: 'permanent',
           isActive: true,
         };
         mockService.update.mockResolvedValue(updated);
@@ -533,7 +533,7 @@ describe('redirectController', () => {
           id: 1,
           from: '/a',
           to: '/b',
-          type: '301',
+          type: 'permanent',
           isActive: false,
         });
         const ctx = createMockCtx({
@@ -553,7 +553,7 @@ describe('redirectController', () => {
           id: 1,
           from: '/a',
           to: '/b',
-          type: '301',
+          type: 'permanent',
           isActive: true,
           comment: 'updated note',
         });
@@ -574,7 +574,7 @@ describe('redirectController', () => {
           id: 1,
           from: '/new-from',
           to: '/new-to',
-          type: '302',
+          type: 'temporary',
           isActive: false,
           comment: 'full update',
         });
@@ -583,7 +583,7 @@ describe('redirectController', () => {
           body: {
             from: '/new-from',
             to: '/new-to',
-            type: '302',
+            type: 'temporary',
             isActive: false,
             comment: 'full update',
           },
@@ -594,7 +594,7 @@ describe('redirectController', () => {
         expect(mockService.update).toHaveBeenCalledWith(1, {
           from: '/new-from',
           to: '/new-to',
-          type: '302',
+          type: 'temporary',
           isActive: false,
           comment: 'full update',
         });
@@ -667,7 +667,7 @@ describe('redirectController', () => {
         id: 5,
         from: '/a',
         to: '/b',
-        type: '301',
+        type: 'permanent',
         isActive: true,
       });
       mockService.delete.mockResolvedValue(undefined);
@@ -699,7 +699,7 @@ describe('redirectController', () => {
         id: 3,
         from: '/a',
         to: '/b',
-        type: '301',
+        type: 'permanent',
         isActive: false,
       };
       mockService.toggleActive.mockResolvedValue(toggled);

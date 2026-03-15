@@ -26,9 +26,9 @@ export default {
     },
     type: {
       type: 'enumeration',
-      enum: ['301', '302'],
+      enum: ['permanent', 'temporary'],
       required: true,
-      default: '301',
+      default: 'permanent',
     },
     isActive: {
       type: 'boolean',

@@ -115,3 +115,28 @@ Wrap `TextInput` in `Field.Root name="..." error={...} required`:
 </Field.Root>
 ```
 `TextInput` takes standard input props: `value`, `onChange` (React.ChangeEvent<HTMLInputElement>), `placeholder`.
+
+## Plugin Content-Type Export Format (content-types/index.ts)
+
+MCP-verified (Strapi v5 docs server-api.md): each content-type value MUST be wrapped in `{ schema: schemaObject }`.
+
+Correct:
+```typescript
+export default {
+  redirect: { schema: redirect },
+  'orphan-redirect': { schema: orphanRedirect },
+};
+```
+
+Wrong (causes `TypeError: Cannot read properties of undefined (reading 'collectionName')` in `formatContentTypes`):
+```typescript
+export default {
+  redirect,  // bare schema object — missing the { schema: } wrapper
+};
+```
+
+The schema file itself exports the raw object (`kind`, `collectionName`, `info`, `attributes`, etc.) — the wrapping happens only at the index level.
+
+**Why:** `@strapi/core` `formatContentTypes` loader expects `{ schema }` shape, not the schema directly.
+
+**How to apply:** Any time a content-type is added to the plugin, always export it as `{ schema: importedSchema }` in `content-types/index.ts`.
